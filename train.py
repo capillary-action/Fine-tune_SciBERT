@@ -21,6 +21,7 @@ model = AutoModelForMaskedLM.from_pretrained('allenai/scibert_scivocab_uncased')
 
 # Set the model to training mode
 model.train()
+#model.eval()
 
 # Define the training arguments
 training_args = TrainingArguments(
@@ -39,7 +40,7 @@ training_args = TrainingArguments(
 formatted_text_data = []
 
 # Define the path to the local directory containing the formatted text data
-directory = 'output_text'
+directory = '/home/pepesilvia/scibert/output_text'
 
 # Loop through all files in the directory and read their contents into formatted_text_data
 for filename in os.listdir(directory):
@@ -50,19 +51,35 @@ for filename in os.listdir(directory):
 stop_words = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 
-# Merge the formatted text data into a single string
-merged_text_data = "\n".join(formatted_text_data)
 
-# Save the merged text data to a text file
-with open('formatted_output.txt', mode='w') as file:
-    file.write(merged_text_data)
-
-# Load the merged text data from the text file
-dataset = TextDataset(
-    tokenizer=tokenizer,
-    file_path='formatted_output.txt',
-    block_size=512
+# Tokenize and split the formatted text data into sequences of length 512
+encoded_data = tokenizer.batch_encode_plus(
+    formatted_text_data,
+    max_length=512,
+    truncation=True,
+    padding='max_length'
 )
+
+# Create a PyTorch Dataset from the encoded data
+class TextDataset(torch.utils.data.Dataset):
+    def __init__(self, input_ids, attention_masks):
+        self.input_ids = input_ids
+        self.attention_masks = attention_masks
+
+    def __getitem__(self, idx):
+        return {'input_ids': self.input_ids[idx], 'attention_mask': self.attention_masks[idx]}
+
+    def __len__(self):
+        return len(self.input_ids)
+
+dataset = TextDataset(encoded_data['input_ids'], encoded_data['attention_mask'])
+
+
+
+
+#print("Dataset length:", len(dataset))
+
+
 
 # Create a data collator
 data_collator = DataCollatorForLanguageModeling(
@@ -78,4 +95,22 @@ trainer = Trainer(
     data_collator=data_collator,
     train_dataset=dataset
 )
-#trainer.train()
+
+# Train the model
+trainer.train()
+
+# Generate text from the trained model
+input_ids = tokenizer.encode("Some input text")
+input_ids_tensor = torch.tensor([input_ids])
+generated_sequences = model.generate(
+    input_ids=input_ids_tensor,
+    max_length=50,
+    num_beams=5,
+    no_repeat_ngram_size=2,
+    early_stopping=True
+)
+
+# Print the generated text
+print(tokenizer.decode(generated_sequences[0]))
+
+
