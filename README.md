@@ -1,12 +1,15 @@
 # Fine-tune_SciBERT
 
-   - Downloads NLTK stopwords and stemmer data.
-   - Loads the SciBERT tokenizer and model.
-   - Defines the training arguments for the model.
-   - Reads the contents of all files in the "output_text" directory and appends them to a list.
-   - Merges the contents of the list into a single string.
-   - Writes the merged string to a file called "formatted_output.txt".
-   - Creates a TextDataset using the "formatted_output.txt" file and the SciBERT tokenizer.
-   - Defines a data collator for language modeling.
-   - Creates a Trainer object using the SciBERT model, the training arguments, the data collator, and the TextDataset.
-   - Trains the model using the Trainer object.
+    - Importing required libraries such as os, re, torch, numpy, transformers, PIL, wand, pytesseract, nltk, and stemmer.
+    - Downloading the NLTK stopwords and stemmer data.
+    - Loading the SciBERT tokenizer and model.
+    - Setting the model to training mode.
+    - Defining the training arguments for the model.
+    - Creating an empty list to store the formatted text data.
+    - Reading the contents of all files in a specified directory into the formatted_text_data list.
+    - Defining the stop words and stemmer.
+    - Tokenizing and splitting the formatted text data into sequences of length 512 using the SciBERT tokenizer.
+    - Creating a PyTorch Dataset from the encoded data.
+    - Defining a data collator for language modeling.
+    - Creating a Trainer object and training the model using the data collator and the PyTorch Dataset.
+    - Generating text from the trained model using the SciBERT tokenizer.
